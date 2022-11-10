@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require("dotenv").config();
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectID, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -17,6 +17,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 async function run() {
     try {
         const serviceCollection = client.db('theGardener').collection('services');
+        const reviewCollection = client.db('theGardener').collection('reviews');
 
         app.get('/services', async (req, res) => {
             const query = {}
@@ -38,6 +39,33 @@ async function run() {
             const service = await serviceCollection.findOne(query);
             res.send(service);
         })
+
+        app.post('/allServices', async (req, res) => {
+            const service = req.body;
+            const result = await serviceCollection.insertOne(service);
+            res.send(result);
+        })
+
+        app.get('/reviews', async (req, res) => {
+            console.log(req.query);
+            let query = {};
+            if (req.query.email) {
+                query = {
+                    userEmail: req.query.email
+                }
+            }
+            const cursor = reviewCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
+        });
+
+        app.post('/reviews', async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        });
+
+
     }
     finally {
 
